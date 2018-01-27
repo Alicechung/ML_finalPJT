@@ -1,22 +1,7 @@
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-#from lxml import html
-#from bs4 import BeautifulSoup, SoupStrainer
-from selenium.webdriver.support.ui import Select
 import re
 import time
 import os
-import csv
-import sys
-#import numpy
-import string
-import random
-
 
 """Get the browser (a "driver")."""
 
@@ -26,7 +11,7 @@ browser = webdriver.Chrome(executable_path=path_to_chromedriver)
 
 url = "http://www.presidency.ucsb.edu/index_docs.php"
 browser.get(url)
-time.sleep(5)
+#time.sleep()
 
 # 2008 Presidential Election
 pe_2008 = browser.find_element_by_xpath(
@@ -40,7 +25,11 @@ pe_2012 = browser.find_element_by_xpath(
 pe_2016 = browser.find_element_by_xpath(
     "/html/body/table/tbody/tr[2]/td/table/tbody/tr/td[2]/table/tbody/tr/td/table/tbody/tr/td/table/tbody/tr/td/ul/li[22]/ul/li[7]/a")
 
+### Download 2016 Presidential Election by candidates
 pe_2016.click()
+
+os.mkdir("../Data/PE2016")
+os.chdir("../Data/PE2016")
 
 pathls=['3','7','9', '11', '13', '17', '21', '23', '25', '27', '29', '31', '33', '35', '37', '39',
        '41', '43', '45', '47', '49']
@@ -51,15 +40,16 @@ for i in pathls :
     
     #Create text file
     candidatename = browser.find_element_by_xpath('//td[@class = "listdate"]').text
-    campaign = "campaign" + candidatename +'.txt'
+    campaign = "campaign" + '2016' + candidatename +'.txt'
 
 
-    # This loops over project searches and copy/pastes the html:
+    # This loops over project searches and copy/pas t es the html:
     with open(campaign, 'w') as txt_file:
 
         row_num = len(browser.find_elements_by_xpath("/html/body/table/tbody/tr[2]/td/table/tbody/tr/td[2]/table/tbody/tr"))
 
         for i in range(2, row_num + 1):
+        	print(i)
             path_one = "/html/body/table/tbody/tr[2]/td/table/tbody/tr/td[2]/table/tbody/tr["
             path_two = "]/td[3]/a"
             ele = browser.find_element_by_xpath(path_one+str(i)+path_two)
@@ -77,7 +67,7 @@ for i in pathls :
             txt_file.write("%s\n" % textbody)
             txt_file.write("\n\n")
 
-            time.sleep(3)
+            time.sleep(5)
 
             browser.back()
         
