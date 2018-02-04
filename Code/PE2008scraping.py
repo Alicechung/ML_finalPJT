@@ -26,35 +26,36 @@ pe_2016 = browser.find_element_by_xpath(
     "/html/body/table/tbody/tr[2]/td/table/tbody/tr/td[2]/table/tbody/tr/td/table/tbody/tr/td/table/tbody/tr/td/ul/li[22]/ul/li[7]/a")
 
 
-### Download 2016 Presidential Election by candidates
-def download2016():
-    pe_2016.click()
-    os.mkdir("../Data/PE2016")
-    os.chdir("../Data/PE2016")
+### Download 2008 Presidential Election by candidates
+def download2008():
+    pe_2008.click()
+    os.mkdir("../Data/PE2008")
+    os.chdir("../Data/PE2008")
 
-    pathls=['3','7','9', '11', '13', '17', '21', '23', '25', '27', '29', '31', '33', '35', '37', '39',
-           '41', '43', '45', '47', '49']
-    for i in pathls :
-        path = '/html/body/table/tbody/tr[2]/td/table/tbody/tr/td[2]/table/tbody/tr/td/p[1]/table/tbody/tr/td/table/tbody/tr['+i+']/td[2]/p[2]/a[1]'
+    pathls=['3', '5', '7', '9', '11', '13', '17', '19', '21', '23', '25']
+
+    for i in pathls :    
+        path = '/html/body/table/tbody/tr[2]/td/table/tbody/tr/td[2]/table/tbody/tr/td/table/tbody/tr/td/table/tbody/tr['+i+']/td[2]/p[2]/a[1]'
         cand_ele = browser.find_element_by_xpath(path)
         cand_ele.click()
         
         #Create text file
         candidatename = browser.find_element_by_xpath('//td[@class = "listdate"]').text
-        campaign = "campaign" + '2016' + candidatename +'.txt'
+        campaign = "campaign" + candidatename +'.txt'
 
-        # This loops over project searches and copy/pas t es the html:
-        with open(campaign, 'w') as txt_file:
+        # This loops over project searches and copy/pastes the html:
+        with open(campaign, 'w', encoding='UTF-8') as txt_file:
 
             row_num = len(browser.find_elements_by_xpath("/html/body/table/tbody/tr[2]/td/table/tbody/tr/td[2]/table/tbody/tr"))
 
             for i in range(2, row_num + 1):
+                print(i)
                 path_one = "/html/body/table/tbody/tr[2]/td/table/tbody/tr/td[2]/table/tbody/tr["
                 path_two = "]/td[3]/a"
                 ele = browser.find_element_by_xpath(path_one+str(i)+path_two)
                 ele.click()
 
-                # title , docdate and textbody
+                # title, docdate and textbody
                 title = browser.find_element_by_xpath('.//span[@class = "paperstitle"]').text
                 docdate = browser.find_element_by_xpath('.//span[@class = "docdate"]').text
                 textbody = browser.find_element_by_xpath('.//span[@class = "displaytext"]').text
@@ -66,17 +67,16 @@ def download2016():
                 txt_file.write("%s\n" % textbody)
                 txt_file.write("\n\n")
 
-                time.sleep(5)
+                time.sleep(3)
 
                 browser.back()
-            
-            txt_file.close()
             print(candidatename, ' Finished.')
-            
+            txt_file.close()
+        
         browser.back()
-    print('Finally Finished. 2016')
-
+    print('2008 Finished.')  
 
 if __name__ == "__main__":
-        download2016()
+        download2008()
+
 
