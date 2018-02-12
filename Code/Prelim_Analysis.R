@@ -19,5 +19,9 @@ select <- dplyr::select
 
 
 setwd("C:/Users/minju/Documents/GitHub/ML_finalPJT/Data")
-speechgeo <- read.csv("C:/Users/minju/Documents/GitHub/ML_finalPJT/Data/primaryresult_words_count2.csv", header=TRUE)
+speechgeo <- read.csv("C:/Users/minju/Documents/GitHub/ML_finalPJT/Data/wordcount_geocode_2.csv", header=TRUE)
+
+length(which(is.na(speechgeo$lon)))
+length(which(is.na(speechgeo$lat)))
+
 
