@@ -1,0 +1,40 @@
+---
+title: "Untitled"
+author: "Alice Mee Seon Chung"
+date: "2/9/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(foreign)
+library(readtext)
+library(stringr)
+library(stm)
+library(stats)
+```
+
+```{r}
+strings_df <- readtext("../PLSC43502/ML_finalPJT/Data/PE2012/*")
+strings_df$doc_id <- str_extract(strings_df$doc_id, "\\D{4,}")
+
+processed <- textProcessor(strings_df$text,
+                           removestopwords = T, removenumbers = T, 
+                           lowercase = T, removepunctuation = T)
+
+out <- prepDocuments(processed$documents, processed$vocab, 
+                     processed$meta)
+
+fit_10 <- stm(out$documents, out$vocab 
+                      , K=10
+                      , emtol = 0.00001
+                      , seed = 12345
+                      , verbose = F)
+
+stm_15_labels_20 <- labelTopics(fit_10, n = 10, topics = 1:10)
+```
+```{r 1}
+result <- stm_15_labels_20$frex
+r <- as.data.frame(result)
+write.csv(r, file = "../PLSC43502/ML_finalPJT/Result/pe2012_topicmodelling_t10.csv")
+```
