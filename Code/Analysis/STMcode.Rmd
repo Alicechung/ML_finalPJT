@@ -1,0 +1,100 @@
+---
+title: "MLFinal"
+author: "Alice Mee Seon Chung"
+date: "2/9/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(foreign)
+library(readtext)
+library(stringr)
+library(stm)
+library(stats)
+library(dplyr)
+```
+
+```{r}
+alldf<-read.csv('../Data/alldf_180223.csv')
+
+alldf_addsw <-alldf%>%mutate(swing = ifelse((Year==2008&swing_last_08 <= 0.05)|
+                                                (Year==2012&swing_last_12 <= 0.05)|
+                                                (Year==2016&swing_last_16 <= 0.05), 1, 0))
+alldf_sw<-subset(alldf_addsw, (!is.na(alldf_addsw$swing)))
+alldf_rust<-subset(alldf_sw, alldf_sw$Rustbelt == 1)
+alldf_norust<-subset(alldf_sw, alldf_sw$Rustbelt == 0)
+
+alldf_norust_nosw<-subset(alldf_norust, alldf_norust$swing == 0)
+alldf_norust_sw<-subset(alldf_norust, alldf_norust$swing == 1)
+
+processed_sw <- textProcessor(alldf_norust_sw$Clean,
+                           removestopwords = T, removenumbers = T, 
+                           lowercase = T, removepunctuation = T)
+
+out_sw <- prepDocuments(processed_sw$documents, processed_sw$vocab, 
+                     processed_sw$meta)
+
+fit_10_sw <- stm(out_sw$documents, out_sw$vocab 
+                      , K=45
+                      , emtol = 0.00001
+                      , seed = 12345
+                      , verbose = F)
+
+stm_15_labels_20_sw <- labelTopics(fit_10_sw, n = 10, topics = 1:45)
+```
+```{r 1}
+#stm_8topic <- stm(out$documents, out$vocab, 8, seed= 1234,  verbose = F) 
+thoughts3 <- findThoughts(fit_10_sw, n=100, topics=36)
+plotQuote(thoughts3, width=40, main="Topic 3")
+
+result_sw <- stm_15_labels_20_sw$frex
+r_sw <- as.data.frame(result_sw)
+write.csv(r_sw, file = "../Result/alldf_norust_sw_t45_180223.csv")
+ 
+stmdf_theta_sw <- data.frame(fit_10_sw$theta)
+write.csv(stmdf_theta_sw, file = "../Result/alldf_norust_sw_t45_theta.csv")
+
+```
+```{r 2}
+nonrust_sw<-read.csv('../Result/alldf_norust_sw_t45_theta.csv')
+nonrust_nosw<-read.csv('../Result/alldf_norust_nonsw_t45_theta.csv')
+
+stmdf_nonrust_sw<- cbind(alldf_norust_sw1$PartyID, alldf_norust_sw1$Year, nonrust_sw)
+
+stmdf_nonrust_nonsw<- cbind(alldf_norust_sw0$PartyID, alldf_norust_sw0$Year, nonrust_nosw)
+
+norust_sw_dem_res <- subset(stmdf_nonrust_sw, stmdf_nonrust_sw$`alldf_norust_sw1$PartyID` == "Dem")
+norust_sw_dem_pro <- colMeans(norust_sw_dem_res[4:48])
+  
+norust_sw_rep_res <- subset(stmdf_nonrust_sw, stmdf_nonrust_sw$`alldf_norust_sw1$PartyID` == "Rep")
+norust_sw_rep_pro <- colMeans(norust_sw_rep_res[4:48])
+
+norust_nosw_dem_res <- subset(stmdf_nonrust_nonsw, stmdf_nonrust_nonsw$`alldf_norust_sw0$PartyID` == "Dem")
+norust_nosw_dem_pro <- colMeans(norust_nosw_dem_res[4:48])
+  
+norust_nosw_rep_res <- subset(stmdf_nonrust_nonsw, stmdf_nonrust_nonsw$`alldf_norust_sw0$PartyID` == "Rep")
+norust_nosw_rep_pro <- colMeans(norust_nosw_rep_res[4:48])
+
+jpeg("../Result/plots.png")
+par(mfrow=c(2,2))
+
+barplot(norust_sw_dem_pro, #names.arg = c('T1','T2','T3','T4','T5','T6','T7','T8'),
+        main="Topic 36, for Dem in Non-Rustbelt & Swing",
+        col = 'orange', cex.main =.9, ylim = c(-0,0.2))
+
+barplot(norust_sw_rep_pro, #names.arg = c('T1','T2','T3','T4','T5','T6','T7','T8'),
+        main="Topic 36, for Rep Non-Rustbelt & Swing",
+        col = 'orange', cex.main =.9, ylim = c(-0,0.2))
+
+barplot(norust_nosw_dem_pro, #names.arg = c('T1','T2','T3','T4','T5','T6','T7','T8'),
+        main="Topic 5, for Dem in Non-Rustbelt & Non-Swing",
+        col = 'blue', cex.main =.9, ylim = c(-0,0.2))
+
+barplot(norust_nosw_rep_pro, #names.arg = c('T1','T2','T3','T4','T5','T6','T7','T8'),
+        main="Topic 5,  for Rep Non-Rustbelt & Non-Swing",
+        col = 'blue', cex.main =.9, ylim = c(-0,0.2))
+
+
+dev.off()
+```
