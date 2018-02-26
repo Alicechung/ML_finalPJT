@@ -64,3 +64,14 @@ mac_final$State = tolower(mac_final$State)
 mac_final <- left_join(mac_final, lgparty, by = c("Year" = "year", "State" = "state"))%>%unique()
 
 sum(length(which(!is.na(mac_final$swing_last_08) & is.na(mac_final$governorp))))
+
+###before and after primary
+mac_final$Date <- as.Date(mac_final$Date)
+mac_final <- mac_final%>%mutate(primary = ifelse((Year == 2016 & PartyID == "Rep" & Date < "2016-05-27")|
+                                                   (Year == 2016 & PartyID == "Dem" & Date < "2016-07-27")|
+                                                   (Year == 2012 & PartyID == "Rep" & Date < "2012-05-30")|
+                                                   (Year == 2012 & PartyID == "Dem" & Date < "2012-04-04")|
+                                                   (Year == 2008 & PartyID == "Rep" & Date < "2008-03-05")|
+                                                   (Year == 2008 & PartyID == "Dem" & Date < "2008-06-04"), 1, 0))
+
+write.csv(mac_final, "Add_covariates2.csv")
