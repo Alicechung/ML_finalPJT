@@ -61,6 +61,6 @@ lgparty <- lgparty%>%select(-governor2)
 
 ##left_join
 mac_final$State = tolower(mac_final$State)
-mac_final <- left_join(mac_final, lgparty, by = c("Year" = "year", "State" = "state"))
+mac_final <- left_join(mac_final, lgparty, by = c("Year" = "year", "State" = "state"))%>%unique()
 
 sum(length(which(!is.na(mac_final$swing_last_08) & is.na(mac_final$governorp))))
