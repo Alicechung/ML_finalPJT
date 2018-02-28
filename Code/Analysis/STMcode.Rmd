@@ -16,11 +16,12 @@ library(dplyr)
 ```
 
 ```{r}
-alldf<-read.csv('../Data/alldf_180223.csv')
+alldf<-read.csv('../../Data/alldf_covariates.csv')
 
 alldf_addsw <-alldf%>%mutate(swing = ifelse((Year==2008&swing_last_08 <= 0.05)|
                                                 (Year==2012&swing_last_12 <= 0.05)|
                                                 (Year==2016&swing_last_16 <= 0.05), 1, 0))
+
 alldf_sw<-subset(alldf_addsw, (!is.na(alldf_addsw$swing)))
 alldf_rust<-subset(alldf_sw, alldf_sw$Rustbelt == 1)
 alldf_norust<-subset(alldf_sw, alldf_sw$Rustbelt == 0)

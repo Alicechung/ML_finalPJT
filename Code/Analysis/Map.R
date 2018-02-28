@@ -21,7 +21,7 @@ dtm <- read.csv('Data/alldf_covariates_adddtm.csv')
 dtm$sum<-rowSums(dtm[, c(25:34)])/nrow(dtm)
 sumbystate<-aggregate(dtm$sum, by=list(id=dtm$State), FUN=sum)
 
-pro_state <- read.csv('Data/pro_state_deal.csv')
+pro_state <- read.csv('Data/pro_state.csv')
 propo <- data.frame(state = tolower(rownames(pro_state)), pro_state)
 names(propo) <- c("state", "id", "proportion")
 #state_wc $statelower <- tolower(state_wc$id)
@@ -32,7 +32,7 @@ data("fifty_states")
 #fifty_states$border <- ifelse(fifty_states$id %in% c('illinois'), 'red', NA)
 rust_ex <- c('illinois','pennsylvania', 'west virginia',
              'ohio', 'indiana', 'michigan','illinois',
-             'iowa', 'wisconsin', 'missouri')
+             'iowa', 'wisconsin', 'missouri', 'new york')
 filter<- fifty_states[fifty_states$id %in% rust_ex,]
 #data("fifty_states") # this line is optional due to lazy data loading
 
@@ -45,7 +45,9 @@ filter<- fifty_states[fifty_states$id %in% rust_ex,]
 p <- ggplot(map_pro, aes(map_id =id)) + 
   # map points to the fifty_states shape data
   geom_map(aes(fill = proportion), map = fifty_states) +
-  geom_map(map =filter, aes(col="red", fill=FALSE), fill=NA)  +
+  #geom_map(map =filter, aes(col="red", fill=FALSE), fill=NA)  +
+  geom_map(map = subset(fifty_states, id %in% rust_ex),
+           fill = NA, colour = "red", size = 1, alpha = 0.2) +
   expand_limits(x = fifty_states$long, y = fifty_states$lat) +
   coord_map() +
   scale_fill_gradient(low="white", high="orange", name="Proportion")+
