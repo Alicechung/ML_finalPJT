@@ -21,13 +21,11 @@ library(stringr)
 library(stm)
 library(stats)
 library(gpclib)
-library(gridExtra)
 
 select <- dplyr::select 
 sim <- Zelig::sim
 logit <- VGAM::logit
 expand <- tidyr::expand
-case_when <- dplyr::case_when
 
 setwd("C:/Users/minju/Dropbox/UChicago/MachineLearning/FinalProject")
 mac_final <- read.csv("C:/Users/minju/Documents/GitHub/ML_finalPJT/Data/alldf_180223.csv", header=TRUE)
