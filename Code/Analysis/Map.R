@@ -17,7 +17,8 @@ library(maptools)
 library(gpclib)
 library(gridExtra)
 library(purrr)
-setwd("C:/Users/minju/Documents/GitHub/ML_finalPJT")
+#setwd("C:/Users/minju/Documents/GitHub/ML_finalPJT")
+setwd("~/Desktop/2018WINTER/PLSC43502/ML_finalPJT")
 
 #dtm <- read.csv('Data/alldf_covariates_adddtm.csv')
 #dtm$sum<-rowSums(dtm[, c(25:34)])/nrow(dtm)
@@ -61,7 +62,8 @@ p <- ggplot(map_pro, aes(map_id =id)) +
   scale_fill_gradient(low="white", high="orange", name="Proportion")+
   scale_x_continuous(breaks = NULL) + 
   scale_y_continuous(breaks = NULL) +
-  labs(x = "", y = "", title = "Trade Salience Map in the US Presidential Election Speeches, 2008 - 2016",
+  labs(x = "", y = "", 
+       title = "Trade Salience Map in the US Presidential Election Speeches, 2008 - 2016",
        subtitle = "Rustbelt Region in Red") +
   theme(plot.title = element_text(size =20, face = "bold"), 
         plot.subtitle = element_text(size =15, color = "red", face = "italic"))
@@ -78,8 +80,50 @@ p
 # add border boxes to AK/HI
 p + fifty_states_inset_boxes() 
 
-ggsave("../ML_finalPJT/Result/Plots/rust_sw_saliencemap.png", width = 14, height = 8, dpi = 300)
-dev.off() 
+#ggsave("../ML_finalPJT/Result/Plots/rust_sw_saliencemap.png", width = 14, height = 8, dpi = 300)
+dev.off()
+
+
+alldf <- read.csv('Data/alldf_covariates_adddtm_allwords.csv')
+### Total speech map
+countdf <- count(alldf, alldf$State) 
+countdf_lower <- data.frame(state = tolower(rownames(countdf)), countdf)
+names(countdf_lower) <- c("state", "id", "freq")
+#state_wc $statelower <- tolower(state_wc$id)
+countdf_fin <- merge(fifty_states, countdf_lower, by="id",all.x=TRUE)
+p1 <- ggplot(countdf_fin, aes(map_id =id)) + 
+  # map points to the fifty_states shape data
+  geom_map(aes(fill = freq), map = fifty_states) +
+  #geom_map(map =filter, aes(col="red", fill=FALSE), fill=NA)  +
+  geom_map(map = subset(fifty_states, id %in% rust_ex),
+           fill = NA, colour = "red", size = 1, alpha = 0.2) +
+  expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+  geom_text(data= cnames, aes(long, lat, label = abb), size = 5) +
+  coord_map() +
+  scale_fill_gradient(low="white", high="dark green", name="Frequency")+
+  scale_x_continuous(breaks = NULL) + 
+  scale_y_continuous(breaks = NULL) +
+  labs(x = "", y = "", 
+       title = "Frequency map of the US Presidential Election Speeches, 2008 - 2016",
+       subtitle = "Rustbelt Region in Red") +
+  theme(plot.title = element_text(size =20, face = "bold"), 
+        plot.subtitle = element_text(size =15, color = "red", face = "italic"))
+#theme(panel.background = element_rect(fill = 'skyblue')) +
+#  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+#  theme(axis.title.x=element_blank(),
+#        axis.text.x=element_blank(),
+#        axis.ticks.x=element_blank(),
+#        axis.title.y=element_blank(),
+#        axis.text.y=element_blank(),
+#        axis.ticks.y=element_blank()) 
+
+p1
+# add border boxes to AK/HI
+p1 + fifty_states_inset_boxes() 
+
+ggsave("../ML_finalPJT/Result/Plots/total_speech_map.png", width = 14, height = 8, dpi = 300)
+dev.off()
+
 #x$region <- tolower(x$State)
 
 
