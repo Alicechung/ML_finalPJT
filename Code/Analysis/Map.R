@@ -1,3 +1,5 @@
+rm(list= ls())
+
 library(ggplot2)
 library(maps)
 library(ggmap)
@@ -15,19 +17,24 @@ library(maptools)
 library(gpclib)
 library(gridExtra)
 library(purrr)
-setwd("~/Desktop/2018WINTER/PLSC43502/ML_finalPJT")
+setwd("C:/Users/minju/Documents/GitHub/ML_finalPJT")
 
-dtm <- read.csv('Data/alldf_covariates_adddtm.csv')
-dtm$sum<-rowSums(dtm[, c(25:34)])/nrow(dtm)
-sumbystate<-aggregate(dtm$sum, by=list(id=dtm$State), FUN=sum)
+#dtm <- read.csv('Data/alldf_covariates_adddtm.csv')
+#dtm$sum<-rowSums(dtm[, c(25:34)])/nrow(dtm)
+#sumbystate<-aggregate(dtm$sum, by=list(id=dtm$State), FUN=sum)
 
-pro_state <- read.csv('Data/pro_state.csv')
+pro_state <- read.csv('Data/pro_state_rust_sw.csv')
 propo <- data.frame(state = tolower(rownames(pro_state)), pro_state)
 names(propo) <- c("state", "id", "proportion")
 #state_wc $statelower <- tolower(state_wc$id)
 map_pro <- merge(fifty_states, propo, by="id",all.x=TRUE)
 
 data("fifty_states")
+
+dd <- data.frame(abb = state.abb, id = tolower(state.name))
+cnames <- aggregate(cbind(long, lat) ~ id, data=fifty_states, 
+                    FUN=function(x)mean(range(x)))
+cnames <- left_join(cnames, dd, by = c ("id"))
 
 #fifty_states$border <- ifelse(fifty_states$id %in% c('illinois'), 'red', NA)
 rust_ex <- c('illinois','pennsylvania', 'west virginia',
@@ -49,12 +56,15 @@ p <- ggplot(map_pro, aes(map_id =id)) +
   geom_map(map = subset(fifty_states, id %in% rust_ex),
            fill = NA, colour = "red", size = 1, alpha = 0.2) +
   expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+  geom_text(data= cnames, aes(long, lat, label = abb), size = 5) +
   coord_map() +
   scale_fill_gradient(low="white", high="orange", name="Proportion")+
   scale_x_continuous(breaks = NULL) + 
   scale_y_continuous(breaks = NULL) +
-  labs(x = "", y = "") +
-  theme(legend.position = "bottom")+
+  labs(x = "", y = "", title = "Trade Salience Map in the US Presidential Election Speeches, 2008 - 2016",
+       subtitle = "Rustbelt Region in Red") +
+  theme(plot.title = element_text(size =20, face = "bold"), 
+        plot.subtitle = element_text(size =15, color = "red", face = "italic"))
   theme(panel.background = element_rect(fill = 'skyblue')) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
   theme(axis.title.x=element_blank(),
@@ -62,12 +72,13 @@ p <- ggplot(map_pro, aes(map_id =id)) +
         axis.ticks.x=element_blank(),
         axis.title.y=element_blank(),
         axis.text.y=element_blank(),
-        axis.ticks.y=element_blank())
+        axis.ticks.y=element_blank()) 
+
 p
 # add border boxes to AK/HI
 p + fifty_states_inset_boxes() 
 
-ggsave("../ML_finalPJT/Result/Plots/wcsum-length-deal.png", width = 14, height = 8, dpi = 300)
+ggsave("../ML_finalPJT/Result/Plots/rust_sw_saliencemap.png", width = 14, height = 8, dpi = 300)
 dev.off() 
 #x$region <- tolower(x$State)
 
