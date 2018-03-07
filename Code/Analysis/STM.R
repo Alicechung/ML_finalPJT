@@ -44,7 +44,7 @@ run_stm<-function(df, topicnum, wordnum){
   r_dt <- as.data.frame(result_frex)
   r_theta <- data.frame(fit$theta)
   
-  return(list(result_frex, stm_labels, r_dt, r_theta, fit))
+  return(list(result_frex, stm_labels, r_dt, r_theta, fit, out))
 }
 
 rust_sw <- run_stm(alldf_rust_sw, 45, 15)
@@ -54,8 +54,8 @@ norust_nosw <- run_stm(alldf_norust_nosw, 45, 15)
 rust<-run_stm(alldf_rust,45,15)
 norust<-run_stm(alldf_norust,45,15)
 
-#write.csv(norust_nosw[3], file = "../Result/STM/alldf_norust_nosw_t45_w15_180302.csv")
-#write.csv(norust_nosw[4], file = "../Result/STM/alldf_norust_nosw_t45_w15_180302_theta.csv")
+write.csv(norust[3], file = "../Result/STM/alldf_norust_t45_w15_180302.csv")
+write.csv(norust[4], file = "../Result/STM/alldf_norust_t45_w15_180302_theta.csv")
 
 #plot(fit_10_sw, type = "summary", xlim = c(0, .3))
 #labeltype = c("prob", "frex", "lift", "score")
