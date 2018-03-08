@@ -1,5 +1,5 @@
 library(foreign)
-library(readtext)
+#library(readtext)
 library(stringr)
 library(stm)
 library(stats)
@@ -7,8 +7,9 @@ library(dplyr)
 library(wordcloud)
 library(ggplot2)
 
-setwd("~/Desktop/2018WINTER/PLSC43502/ML_finalPJT/Data/")
-alldf<-read.csv('alldf_covariates_adddtm.csv')
+#setwd("~/Desktop/2018WINTER/PLSC43502/ML_finalPJT/Data/")
+setwd("C:/Users/user/Desktop/ML_finalPJT/Data/")
+alldf<-read.csv('alldf_w15_180306.csv')
 
 alldf_addsw <-alldf%>%mutate(swing = ifelse((Year==2008&swing_last_08 <= 0.05)|
                                               (Year==2012&swing_last_12 <= 0.05)|
@@ -24,6 +25,23 @@ alldf_norust_sw<-subset(alldf_norust, alldf_norust$swing == 1)
 
 alldf_rust_nosw<-subset(alldf_rust, alldf_rust$swing == 0)
 alldf_rust_sw<-subset(alldf_rust, alldf_rust$swing == 1)
+
+col.lse <- function(mat) {
+  matrixStats::colLogSumExps(mat)
+}
+
+calcfrex <- function(logbeta, w=.5, wordcounts=NULL) {
+  excl <- t(t(logbeta) - col.lse(logbeta))
+  if(!is.null(wordcounts)) {
+    #if word counts provided calculate the shrinkage estimator
+    excl <- safelog(sapply(1:ncol(excl), function(x) js.estimate(exp(excl[,x]), wordcounts[x])))
+  } 
+  freqscore <- apply(logbeta,1,data.table::frank)/ncol(logbeta)
+  exclscore <- apply(excl,1,data.table::frank)/ncol(logbeta)
+  frex <- 1/(w/freqscore + (1-w)/exclscore)
+  apply(frex,2,order,decreasing=TRUE)
+}
+
 
 # Rustbelt
 run_stm<-function(df, topicnum, wordnum){
@@ -53,55 +71,13 @@ norust_sw <- run_stm(alldf_norust_sw, 45, 15)
 norust_nosw <- run_stm(alldf_norust_nosw, 45, 15)
 rust<-run_stm(alldf_rust,45,15)
 norust<-run_stm(alldf_norust,45,15)
+all<-run_stm(alldf_sw, 100, 15)
+all_again<-run_stm(alldf_addsw, 100, 15)
 
-write.csv(norust[3], file = "../Result/STM/alldf_norust_t45_w15_180302.csv")
-write.csv(norust[4], file = "../Result/STM/alldf_norust_t45_w15_180302_theta.csv")
+write.csv(all_again[3], file = "../Result/STM/alldf_t100_w15_180307_1247.csv")
+write.csv(all_again[4], file = "../Result/STM/alldf_t100_w15_180307_theta_1247.csv")
 
-#plot(fit_10_sw, type = "summary", xlim = c(0, .3))
-#labeltype = c("prob", "frex", "lift", "score")
-
-plot(rust_sw[[5]], type = "perspective", topics = c(1, 34),
-     labeltype = "frex", n = 30)
-
-#jpeg("../Result/Plots/word_cloud_rust_nosw.png")
-png("../Result/Plots/word_cloud_norust_nosw.png", width = 8, height = 8, 
-    units = 'in', res = 300)
-pal2 <- brewer.pal(7,"GnBu")
-par(bg="black") 
-cloud(norust_nosw[[5]], topic = 5, scale = c(6,.8), colors=pal2,random.order=FALSE)
-#ggsave("../ML_finalPJT/Result/Plots/test.png", width = 14, height = 14, dpi = 300)
-dev.off() 
-#dev.off()
-
-#nonrust_sw<-read.csv('../Result/alldf_norust_sw_t45_theta.csv')
-#nonrust_nosw<-read.csv('../Result/alldf_norust_nonsw_t45_theta.csv')
-
-stmdf_nonrust_sw<- cbind(alldf_norust_sw1$PartyID, alldf_norust_sw1$Year, nonrust_sw)
-
-stmdf_nonrust_nonsw<- cbind(alldf_norust_sw0$PartyID, alldf_norust_sw0$Year, nonrust_nosw)
-
-norust_sw_dem_res <- subset(stmdf_nonrust_sw, stmdf_nonrust_sw$`alldf_norust_sw1$PartyID` == "Dem")
-norust_sw_dem_pro <- colMeans(norust_sw_dem_res[4:48])
-
-norust_sw_rep_res <- subset(stmdf_nonrust_sw, stmdf_nonrust_sw$`alldf_norust_sw1$PartyID` == "Rep")
-norust_sw_rep_pro <- colMeans(norust_sw_rep_res[4:48])
-
-norust_nosw_dem_res <- subset(stmdf_nonrust_nonsw, stmdf_nonrust_nonsw$`alldf_norust_sw0$PartyID` == "Dem")
-norust_nosw_dem_pro <- colMeans(norust_nosw_dem_res[4:48])
-
-norust_nosw_rep_res <- subset(stmdf_nonrust_nonsw, stmdf_nonrust_nonsw$`alldf_norust_sw0$PartyID` == "Rep")
-norust_nosw_rep_pro <- colMeans(norust_nosw_rep_res[4:48])
-
-#jpeg("../Result/plots.png")
-par(mfrow=c(2,2))
-
-barplot(norust_sw_dem_pro, #names.arg = c('T1','T2','T3','T4','T5','T6','T7','T8'),
-        main="Topic 36, for Dem in Non-Rustbelt & Swing",
-        col = 'orange', cex.main =.9, ylim = c(-0,0.2))
-
-barplot(norust_sw_rep_pro, #names.arg = c('T1','T2','T3','T4','T5','T6','T7','T8'),
-        main="Topic 36, for Rep Non-Rustbelt & Swing",
-        col = 'orange', cex.main =.9, ylim = c(-0,0.2))
+#        col = 'orange', cex.main =.9, ylim = c(-0,0.2))
 
 barplot(norust_nosw_dem_pro, #names.arg = c('T1','T2','T3','T4','T5','T6','T7','T8'),
         main="Topic 5, for Dem in Non-Rustbelt & Non-Swing",
