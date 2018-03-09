@@ -42,6 +42,23 @@ calcfrex <- function(logbeta, w=.5, wordcounts=NULL) {
   apply(frex,2,order,decreasing=TRUE)
 }
 
+logbeta<-all_again[[5]]$beta$logbeta
+#vocab<-all_again[[5]]$vocab
+wordcounts<-all_again[[5]]$settings$dim$wcounts$x
+  
+#logbeta <- all_again[[5]]$beta$logbeta
+K <- all_again[[5]]$settings$dim$K
+vocab <- all_again[[5]]$vocab
+
+logbeta <- logbeta[[1]]
+#wordcounts <- all_again[[5]]$settings$dim$wcounts$x
+frexweight <- 0.5
+#Calculate FREX Score
+frexlabels <- try(calcfrex(logbeta, frexweight, wordcounts),silent=TRUE)
+
+words_15 <- vocab[frexlabels[1:n,k]]
+
+
 
 # Rustbelt
 run_stm<-function(df, topicnum, wordnum){
