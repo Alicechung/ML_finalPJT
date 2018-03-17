@@ -7,9 +7,9 @@ library(dplyr)
 library(wordcloud)
 library(ggplot2)
 
-#setwd("~/Desktop/2018WINTER/PLSC43502/ML_finalPJT/Data/")
-setwd("C:/Users/user/Desktop/ML_finalPJT/Data/")
-alldf<-read.csv('alldf_w15_180306.csv')
+setwd("~/Desktop/2018WINTER/PLSC43502/ML_finalPJT/Data/")
+#setwd("C:/Users/user/Desktop/ML_finalPJT/Data/")
+alldf<-read.csv('alldf_t100_frexscore_swing.csv')
 
 alldf_addsw <-alldf%>%mutate(swing = ifelse((Year==2008&swing_last_08 <= 0.05)|
                                               (Year==2012&swing_last_12 <= 0.05)|
@@ -42,23 +42,6 @@ calcfrex <- function(logbeta, w=.5, wordcounts=NULL) {
   apply(frex,2,order,decreasing=TRUE)
 }
 
-logbeta<-all_again[[5]]$beta$logbeta
-#vocab<-all_again[[5]]$vocab
-wordcounts<-all_again[[5]]$settings$dim$wcounts$x
-  
-#logbeta <- all_again[[5]]$beta$logbeta
-K <- all_again[[5]]$settings$dim$K
-vocab <- all_again[[5]]$vocab
-
-logbeta <- logbeta[[1]]
-#wordcounts <- all_again[[5]]$settings$dim$wcounts$x
-frexweight <- 0.5
-#Calculate FREX Score
-frexlabels <- try(calcfrex(logbeta, frexweight, wordcounts),silent=TRUE)
-
-words_15 <- vocab[frexlabels[1:n,k]]
-
-
 
 # Rustbelt
 run_stm<-function(df, topicnum, wordnum){
@@ -86,23 +69,42 @@ rust_sw <- run_stm(alldf_rust_sw, 45, 15)
 rust_nosw <- run_stm(alldf_rust_nosw, 45, 15)
 norust_sw <- run_stm(alldf_norust_sw, 45, 15)
 norust_nosw <- run_stm(alldf_norust_nosw, 45, 15)
-rust<-run_stm(alldf_rust,45,15)
-norust<-run_stm(alldf_norust,45,15)
-all<-run_stm(alldf_sw, 100, 15)
-all_again<-run_stm(alldf_addsw, 100, 15)
+#rust<-run_stm(alldf_rust,45,15)
+#norust<-run_stm(alldf_norust,45,15)
+#all<-run_stm(alldf_sw, 100, 15)
+#all_again<-run_stm(alldf_addsw, 100, 15)
 
-write.csv(all_again[3], file = "../Result/STM/alldf_t100_w15_180307_1247.csv")
-write.csv(all_again[4], file = "../Result/STM/alldf_t100_w15_180307_theta_1247.csv")
 
-#        col = 'orange', cex.main =.9, ylim = c(-0,0.2))
 
-barplot(norust_nosw_dem_pro, #names.arg = c('T1','T2','T3','T4','T5','T6','T7','T8'),
-        main="Topic 5, for Dem in Non-Rustbelt & Non-Swing",
-        col = 'blue', cex.main =.9, ylim = c(-0,0.2))
+### calculating FREX score Part
+logbeta<-all_again[[5]]$beta$logbeta
+#vocab<-all_again[[5]]$vocab
+wordcounts<-all_again[[5]]$settings$dim$wcounts$x
+#logbeta <- all_again[[5]]$beta$logbeta
+K <- all_again[[5]]$settings$dim$K
+vocab <- all_again[[5]]$vocab
+logbeta <- logbeta[[1]]
+#wordcounts <- all_again[[5]]$settings$dim$wcounts$x
+frexweight <- 0.5
+#Calculate FREX Score
+frexlabels <- try(calcfrex(logbeta, frexweight, wordcounts),silent=TRUE)
+words_15 <- vocab[frexlabels[1:n,k]]
 
-barplot(norust_nosw_rep_pro, #names.arg = c('T1','T2','T3','T4','T5','T6','T7','T8'),
-        main="Topic 5,  for Rep Non-Rustbelt & Non-Swing",
-        col = 'blue', cex.main =.9, ylim = c(-0,0.2))
-
+#write.csv(all_again[3], file = "../Result/STM/alldf_t100_w15_180307_1247.csv")
+#write.csv(all_again[4], file = "../Result/STM/alldf_t100_w15_180307_theta_1247.csv")
 
 dev.off()
+
+finddoc <- findThoughts(rust_sw[[5]], n = 2, topics = 34)$docs[[1]]
+#colMeans(shelby_res[2:9])
+
+plot(rust_sw[[5]], type = "perspective", topics = c(1, 34),	
+      -     labeltype = "frex", n = 30)
+
+png("../Result/Plots/word_cloud_norust_nosw.png", width = 8, height = 8, 	
+        units = 'in', res = 300)	
+pal2 <- brewer.pal(7,"GnBu")	
+par(bg="black") 	
+cloud(norust_nosw[[5]], topic = 5, scale = c(6,.8), colors=pal2,random.order=FALSE)	
+ggsave("../ML_finalPJT/Result/Plots/test.png", width = 14, height = 14, dpi = 300)	
+dev.off() 
